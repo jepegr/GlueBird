@@ -219,10 +219,14 @@ function Swatch({ material, selected, onClick }) {
 
 function StrengthMeter({ value }) {
   return (
-    <div className="meter" aria-label={`Bond strength ${value} of 5`}>
-      {[1, 2, 3, 4, 5].map((i) => (
-        <span key={i} className={`meter-pip ${i <= value ? "meter-pip-filled" : ""}`} />
-      ))}
+    <div className="meter-wrap">
+      <span className="meter-label">Bond strength</span>
+      <div className="meter" aria-label={`Bond strength ${value} of 5`}>
+        {[1, 2, 3, 4, 5].map((i) => (
+          <span key={i} className={`meter-pip ${i <= value ? "meter-pip-filled" : ""}`} />
+        ))}
+      </div>
+      <span className="meter-value">{value}/5</span>
     </div>
   );
 }
@@ -230,23 +234,10 @@ function StrengthMeter({ value }) {
 export default function Gluebird() {
   const [a, setA] = useState(null);
   const [b, setB] = useState(null);
-  const [shareFlash, setShareFlash] = useState(false);
 
   const result = useMemo(() => (a && b ? recommend(a, b) : null), [a, b]);
   const matA = MATERIALS.find((m) => m.id === a);
   const matB = MATERIALS.find((m) => m.id === b);
-
-  async function shareResult() {
-    if (!result || !matA || !matB) return;
-    const text = `${matA.label} + ${matB.label} -> ${result.adhesive.name}. Worked out what glues almost anything to anything else on Gluebird.`;
-    try {
-      if (navigator.clipboard) {
-        await navigator.clipboard.writeText(text);
-        setShareFlash(true);
-        setTimeout(() => setShareFlash(false), 1600);
-      }
-    } catch (e) { console.error("Could not copy share text", e); }
-  }
 
   function pick(id, target) {
     if (target === "a") setA(id === a ? null : id);
@@ -321,9 +312,12 @@ export default function Gluebird() {
         .bb-meta { display: flex; gap: 0; flex-wrap: wrap; margin: 10px 0 16px; border-top: 1px solid var(--hair); border-bottom: 1px solid var(--hair); }
         .bb-meta-item { display: flex; flex-direction: column; gap: 3px; padding: 10px 22px 10px 0; font-family: 'Roboto Mono', monospace; font-size: 11.5px; color: var(--ink); }
         .bb-meta-key { color: var(--dim); text-transform: uppercase; letter-spacing: 0.06em; font-size: 10px; }
+        .meter-wrap { display: flex; align-items: center; gap: 8px; }
+        .meter-label { font-family: 'Roboto Mono', monospace; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--dim); }
         .meter { display: flex; gap: 3px; }
         .meter-pip { width: 14px; height: 7px; border-radius: 1px; background: var(--hair); }
         .meter-pip-filled { background: var(--orange); }
+        .meter-value { font-family: 'Roboto Mono', monospace; font-size: 11px; font-weight: 600; color: var(--ink); }
 
         .bb-tip { border-left: 4px solid var(--rust); padding-left: 13px; font-size: 15px; line-height: 1.55; color: var(--ink); margin-bottom: 18px; font-weight: 500; }
         .bb-prep { font-size: 13.5px; color: var(--dim); line-height: 1.6; margin-bottom: 20px; }
@@ -352,8 +346,6 @@ export default function Gluebird() {
         .bb-note-input::placeholder { color: var(--dim); }
         .bb-save-btn { background: var(--black); color: var(--bg); border: 2px solid var(--black); border-radius: 2px; padding: 9px 18px; font-weight: 700; font-size: 13.5px; cursor: pointer; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.03em; }
         .bb-save-btn:hover { background: var(--orange); border-color: var(--orange); }
-        .bb-share-btn { background: var(--bg); color: var(--black); border: 2px solid var(--black); border-radius: 2px; padding: 9px 16px; font-weight: 700; font-size: 13.5px; cursor: pointer; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.03em; }
-        .bb-share-btn:hover { background: var(--hair); }
         .bb-save-flash { font-size: 12px; color: var(--orange-deep); margin-top: 8px; font-family: 'Roboto Mono', monospace; font-weight: 500; }
 
         .bb-empty { text-align: center; color: var(--dim); font-size: 13.5px; padding: 30px 10px; border: 2px dashed var(--hair); border-radius: 4px; }
@@ -378,10 +370,29 @@ export default function Gluebird() {
         .bb-board-rank { font-family: 'Barlow Condensed', sans-serif; color: var(--bg); background: var(--black); font-weight: 800; width: 22px; height: 22px; border-radius: 2px; display: flex; align-items: center; justify-content: center; font-size: 13px; }
         .bb-board-count { font-family: 'Roboto Mono', monospace; color: var(--dim); font-size: 11.5px; }
 
+        .bb-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .bb-nav-brand-wrap { display: flex; align-items: center; gap: 10px; }
+        .bb-logo { height: 42px; width: auto; display: block; }
+        .bb-nav-brand { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 15px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--dim); }
+        .bb-nav-link { font-weight: 700; font-size: 13.5px; color: var(--ink); text-decoration: none; border-bottom: 2px solid var(--orange); padding-bottom: 2px; }
+        .bb-nav-link:hover { color: var(--orange-deep); }
         .bb-footnote { max-width: 900px; margin: 32px auto 0; padding: 0 18px; font-size: 11.5px; color: var(--dim); line-height: 1.6; }
+        .bb-footer { border-top: 3px solid var(--black); margin-top: 40px; }
+        .bb-footer-inner { max-width: 900px; margin: 0 auto; padding: 26px 18px 34px; }
+        .bb-footer-nav { display: flex; gap: 18px; margin: 16px 0 10px; }
+        .bb-footer-nav a { color: var(--ink); font-weight: 700; font-size: 13px; text-decoration: none; }
+        .bb-footer-nav a:hover { color: var(--orange-deep); }
+        .bb-footer-copy { font-size: 11px; color: var(--dim); margin: 0; }
       `}</style>
 
       <header className="bb-header">
+        <div className="bb-nav">
+          <div className="bb-nav-brand-wrap">
+            <img className="bb-logo" src="/mascot-logo.png" alt="Gluebird mascot" />
+            <span className="bb-nav-brand">Gluebird</span>
+          </div>
+          <a className="bb-nav-link" href="/blog/">Guides</a>
+        </div>
         <p className="bb-eyebrow">Workbench reference</p>
         <h1 className="bb-title">GLUEBIRD</h1>
         <p className="bb-sub">
@@ -458,21 +469,27 @@ export default function Gluebird() {
               Product links are affiliate links — if you buy through one, this site may earn a small commission at no extra cost to you.
             </div>
 
-            <div className="bb-actions" style={{ marginTop: 16 }}>
-              <button className="bb-share-btn" onClick={shareResult}>Copy to share</button>
-            </div>
-            {shareFlash && <div className="bb-save-flash">Copied — paste it anywhere.</div>}
           </div>
         ) : (
           <div className="bb-empty">Select a material on each side to see the recommended bond.</div>
         )}
       </div>
 
-      <p className="bb-footnote">
-        General guidance for common materials — always check the adhesive's own
-        label for specific surfaces, ventilation needs, and safety precautions.
-        Product links are affiliate links.
-      </p>
+      <footer className="bb-footer">
+        <div className="bb-footer-inner">
+          <p className="bb-footnote">
+            General guidance for common materials — always check the adhesive's own
+            label for specific surfaces, ventilation needs, and safety precautions.
+            Product links are affiliate links.
+          </p>
+          <nav className="bb-footer-nav">
+            <a href="/blog/">Blog</a>
+            <a href="/impressum/">Impressum</a>
+            <a href="/datenschutz/">Datenschutz</a>
+          </nav>
+          <p className="bb-footer-copy">© {new Date().getFullYear()} MoBe UG (haftungsbeschränkt) — Gluebird</p>
+        </div>
+      </footer>
     </div>
   );
 }

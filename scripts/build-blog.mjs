@@ -44,14 +44,16 @@ function template({ title, meta, keywords, bodyHtml, canonicalPath }) {
 </head>
 <body>
 <header>
-  <a class="logo" href="/">Gluebird</a>
+  <a class="logo" href="/"><img src="/mascot-logo.png" alt="Gluebird mascot" style="height:32px;width:auto;vertical-align:middle;margin-right:8px;" />Gluebird</a>
   <nav><a href="/blog/">Guides</a><a href="/">Bond Finder</a></nav>
 </header>
 <main>
 ${bodyHtml}
 <a class="cta" href="/">Try the Gluebird Bond Finder →</a>
 </main>
-<footer>Gluebird — general adhesive guidance. Always check the product label for specifics.</footer>
+<footer>Gluebird — general adhesive guidance. Always check the product label for specifics.
+<div style="margin-top:10px;"><a href="/blog/">Blog</a> · <a href="/impressum/">Impressum</a> · <a href="/datenschutz/">Datenschutz</a></div>
+</footer>
 </body>
 </html>`;
 }
@@ -106,6 +108,14 @@ for (const file of fs.readdirSync(path.join(CONTENT_DIR, "pairs"))) {
     path.join(OUT_DIR, "pairs", slug, "index.html"),
     `/blog/pairs/${slug}/`
   );
+}
+
+// legal pages (top-level, not under /glues or /pairs)
+for (const slug of ["impressum", "datenschutz"]) {
+  const file = path.join(CONTENT_DIR, `${slug}.md`);
+  if (fs.existsSync(file)) {
+    buildOne(file, path.join(OUT_DIR, "..", slug, "index.html"), `/${slug}/`);
+  }
 }
 
 console.log("Blog build complete:", OUT_DIR);
