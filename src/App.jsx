@@ -1,25 +1,40 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 /* ---------------------------------------------------------
    GLUEBIRD — material pairing -> adhesive recommendation
    All copy, rules and visuals below are original.
 
-   AFFILIATE SETUP: replace AFFILIATE_TAG below with your own
-   Amazon Associates tracking ID (or swap productLink() for
-   another program's URL format). Every "View product" button
-   runs through productLink(), so one edit updates the whole
-   site. Until you set a real tag, links point to a plain
-   Amazon search with no tracking attached.
+   AFFILIATE SETUP: Amazon runs a combined "EU5" Associates
+   program — Germany, France, Italy, Spain, and the UK all
+   share ONE tracking ID (that's why signing up once got you
+   a single Store ID usable across all five). The US program
+   is separate and needs its own tag once approved.
+   Country detection comes from /api/geo (a tiny Worker route
+   backed by Cloudflare's edge-provided visitor country — see
+   worker/index.js), so this only resolves correctly once
+   deployed on Cloudflare, not in local `vite dev`.
 --------------------------------------------------------- */
 
-const AFFILIATE_TAG = "YOUR-AFFILIATE-TAG-20"; // TODO: replace with your Associates ID
+const AFFILIATE_TAG_EU5 = "mobeug-21"; // partnernet.amazon.de Store ID — shared across DE/FR/IT/ES/UK
+const AFFILIATE_TAG_US = "YOUR-US-AFFILIATE-TAG-20"; // TODO: affiliate-program.amazon.com tracking ID, once approved
 
-function productLink(query) {
+// Cloudflare country codes -> which Amazon store to send that visitor to.
+// AT/CH have no Amazon store of their own, so they fall back to the DE store.
+// Anyone not listed here defaults to the US store.
+const MARKET_BY_COUNTRY = {
+  DE: "amazon.de", AT: "amazon.de", CH: "amazon.de",
+  FR: "amazon.fr",
+  IT: "amazon.it",
+  ES: "amazon.es",
+  GB: "amazon.co.uk", IE: "amazon.co.uk",
+};
+
+function productLink(query, market) {
   const q = encodeURIComponent(query);
-  const tagged = AFFILIATE_TAG.startsWith("YOUR-")
-    ? ""
-    : `&tag=${encodeURIComponent(AFFILIATE_TAG)}`;
-  return `https://www.amazon.com/s?k=${q}${tagged}`;
+  const domain = market || "amazon.com";
+  const tag = domain === "amazon.com" ? AFFILIATE_TAG_US : AFFILIATE_TAG_EU5;
+  const tagged = tag.startsWith("YOUR-") ? "" : `&tag=${encodeURIComponent(tag)}`;
+  return `https://www.${domain}/s?k=${q}${tagged}`;
 }
 
 const MATERIALS = [
@@ -234,6 +249,22 @@ function StrengthMeter({ value }) {
 export default function Gluebird() {
   const [a, setA] = useState(null);
   const [b, setB] = useState(null);
+  const [market, setMarket] = useState("amazon.com");
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/geo");
+        if (res.ok) {
+          const data = await res.json();
+          setMarket(MARKET_BY_COUNTRY[data.country] || "amazon.com");
+        }
+      } catch (e) {
+        // /api/geo only exists once deployed on Cloudflare — falls back to US in local dev
+      }
+    })();
+  }, []);
+
 
   const result = useMemo(() => (a && b ? recommend(a, b) : null), [a, b]);
   const matA = MATERIALS.find((m) => m.id === a);
@@ -327,6 +358,7 @@ export default function Gluebird() {
           font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.08em; text-transform: uppercase;
           color: var(--black); margin-bottom: 10px; border-bottom: 3px solid var(--black); padding-bottom: 6px;
         }
+        .bb-market-tag { font-family: 'Roboto Mono', monospace; font-weight: 500; font-size: 11px; letter-spacing: 0; text-transform: none; color: var(--dim); }
         .bb-products { display: grid; gap: 10px; margin-bottom: 18px; }
         .bb-product { border: 2px solid var(--hair); border-radius: 3px; padding: 13px 15px; display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap; }
         .bb-product-name { font-weight: 700; font-size: 14.5px; margin-bottom: 3px; }
@@ -451,7 +483,9 @@ export default function Gluebird() {
               it's tacky.
             </p>
 
-            <div className="bb-products-label">Products that fit this bond</div>
+            <div className="bb-products-label">
+              Products that fit this bond <span className="bb-market-tag">({market.replace("amazon", "Amazon")})</span>
+            </div>
             <div className="bb-products">
               {result.adhesive.products.map((p) => (
                 <div className="bb-product" key={p.name}>
@@ -459,7 +493,7 @@ export default function Gluebird() {
                     <div className="bb-product-name">{p.name}</div>
                     <div className="bb-product-blurb">{p.blurb}</div>
                   </div>
-                  <a className="bb-product-cta" href={productLink(p.name)} target="_blank" rel="noopener noreferrer">
+                  <a className="bb-product-cta" href={productLink(p.name, market)} target="_blank" rel="noopener noreferrer">
                     View product →
                   </a>
                 </div>
