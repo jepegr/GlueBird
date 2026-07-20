@@ -35,6 +35,8 @@ Diese Website wird über Cloudflare, Inc. gehostet. Beim Aufruf der Seite verarb
 
 Cloudflare kann Daten auch außerhalb der EU/des EWR verarbeiten. Cloudflare hat sich hierfür auf EU-Standardvertragsklauseln (Art. 46 Abs. 2 lit. c DSGVO) als geeignete Garantie berufen. Weitere Informationen finden Sie in der Datenschutzerklärung von Cloudflare: [https://www.cloudflare.com/privacypolicy/](https://www.cloudflare.com/privacypolicy/)
 
+Zusätzlich ermitteln wir serverseitig, aus welchem Land Ihre Anfrage kommt (basierend auf einer von Cloudflare bereitgestellten, groben Länder-Zuordnung Ihrer IP-Adresse). Diese Information wird ausschließlich genutzt, um Ihnen die für Sie passende Amazon-Partnerlink-Domain anzuzeigen (amazon.de oder amazon.com), und wird nicht gespeichert oder protokolliert. Rechtsgrundlage ist unser berechtigtes Interesse an einer für Sie funktionierenden Verlinkung (Art. 6 Abs. 1 lit. f DSGVO).
+
 ## 4. Server-Logfiles
 
 Beim Besuch dieser Website werden durch den Hosting-Provider automatisch Informationen in sogenannten Server-Logfiles erfasst, die Ihr Browser übermittelt. Dies sind insbesondere:
