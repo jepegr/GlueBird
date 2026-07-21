@@ -307,10 +307,10 @@ export default function Gluebird() {
         }
         .bb-sub-lead {
           font-family: 'Roboto Mono', monospace; font-weight: 500; font-size: 12px; letter-spacing: 0.07em; text-transform: uppercase;
-          color: var(--dim); margin: 8px 0 0;
+          color: var(--dim); margin: 26px 0 0;
         }
         .bb-checklist {
-          list-style: none; margin: 22px 0 0; padding: 0;
+          list-style: none; margin: 12px 0 0; padding: 0;
           display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 10px;
         }
         .bb-checklist li {
@@ -321,8 +321,25 @@ export default function Gluebird() {
         .bb-checklist li::before { content: "✓"; color: var(--orange); font-weight: 800; font-family: 'Barlow', sans-serif; }
 
         .bb-board { max-width: 900px; margin: 40px auto 0; padding: 0 18px; display: grid; gap: 20px; }
-        .bb-columns { display: grid; grid-template-columns: 1fr; gap: 14px; }
-        @media (min-width: 720px) { .bb-columns { grid-template-columns: 1fr 1fr; } }
+        .bb-columns { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        .bb-columns-divider { position: relative; display: flex; align-items: center; justify-content: center; padding: 6px 0; }
+        .bb-columns-divider::before {
+          content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px;
+          background: var(--hair); transform: translateY(-50%);
+        }
+        .bb-columns-divider span {
+          position: relative; z-index: 1; background: #fff; border: 2px solid var(--black); border-radius: 999px;
+          width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+          font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 18px; color: var(--black);
+        }
+        @media (min-width: 720px) {
+          .bb-columns { grid-template-columns: 1fr auto 1fr; gap: 0; }
+          .bb-columns > div:first-child, .bb-columns > div:last-child { padding: 0 28px; }
+          .bb-columns > div:first-child { padding-left: 0; }
+          .bb-columns > div:last-child { padding-right: 0; }
+          .bb-columns-divider { padding: 0; }
+          .bb-columns-divider::before { left: 50%; right: auto; top: 0; bottom: 0; height: auto; width: 1px; transform: translateX(-50%); }
+        }
         .bb-col-label {
           font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.1em; text-transform: uppercase;
           color: var(--black); margin-bottom: 7px; display: block; border-bottom: 3px solid var(--black); padding-bottom: 5px;
@@ -499,6 +516,7 @@ export default function Gluebird() {
               ))}
             </div>
           </div>
+          <div className="bb-columns-divider" aria-hidden="true"><span>+</span></div>
           <div>
             <span className="bb-col-label">Material B</span>
             <div className="swatch-grid">
