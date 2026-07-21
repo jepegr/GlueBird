@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
+import PRODUCT_IMAGES from "../content/product-images.json";
 
 /* ---------------------------------------------------------
    GLUEBIRD — material pairing -> adhesive recommendation
@@ -228,21 +229,8 @@ function Swatch({ material, selected, onClick }) {
     <button onClick={onClick} className={`swatch ${selected ? "swatch-selected" : ""}`} aria-pressed={selected}>
       <span className="swatch-texture" style={TEXTURE_STYLES[material.texture]} />
       <span className="swatch-label">{material.label}</span>
+      {selected && <span className="swatch-check">✓</span>}
     </button>
-  );
-}
-
-function StrengthMeter({ value }) {
-  return (
-    <div className="meter-wrap">
-      <span className="meter-label">Bond strength</span>
-      <div className="meter" aria-label={`Bond strength ${value} of 5`}>
-        {[1, 2, 3, 4, 5].map((i) => (
-          <span key={i} className={`meter-pip ${i <= value ? "meter-pip-filled" : ""}`} />
-        ))}
-      </div>
-      <span className="meter-value">{value}/5</span>
-    </div>
   );
 }
 
@@ -269,6 +257,13 @@ export default function Gluebird() {
   const result = useMemo(() => (a && b ? recommend(a, b) : null), [a, b]);
   const matA = MATERIALS.find((m) => m.id === a);
   const matB = MATERIALS.find((m) => m.id === b);
+  const resultRef = useRef(null);
+
+  useEffect(() => {
+    if (result && resultRef.current) {
+      resultRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [result]);
 
   function pick(id, target) {
     if (target === "a") setA(id === a ? null : id);
@@ -289,35 +284,66 @@ export default function Gluebird() {
           font-family: 'Barlow', sans-serif;
           min-height: 100%; padding: 0 0 60px;
         }
-        .bb-header { max-width: 900px; margin: 0 auto; padding: 30px 18px 0; }
+        .bb-header { max-width: 900px; margin: 0 auto; padding: 30px 18px 0; text-align: center; }
         .bb-eyebrow {
           font-family: 'Barlow', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
-          color: var(--bg); background: var(--orange); display: inline-block; padding: 3px 10px; margin: 0 0 12px;
+          color: var(--bg); background: var(--orange); display: inline-block; padding: 3px 10px; margin: 0 0 18px;
         }
+        .bb-trust-bar {
+          display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 16px; margin: 0 0 30px;
+          font-family: 'Roboto Mono', monospace; font-size: 11.5px; color: var(--dim);
+        }
+        .bb-trust-bar span { white-space: nowrap; }
+        .bb-trust-bar span::before { content: "✓ "; color: var(--orange); font-weight: 800; }
+        .bb-logo-big { height: clamp(46px, 10vw, 80px); width: auto; display: block; justify-self: start; }
         .bb-title {
           font-family: 'Barlow Condensed', sans-serif; font-weight: 800; text-transform: uppercase;
-          font-size: clamp(46px, 10vw, 80px); letter-spacing: 0.01em; line-height: 0.88; margin: 0 0 12px; color: var(--black);
+          font-size: clamp(46px, 10vw, 80px); letter-spacing: 0.01em; line-height: 0.88; margin: 0; color: var(--black);
         }
-        .bb-sub { color: var(--dim); max-width: 54ch; font-size: 16px; line-height: 1.5; font-weight: 500; }
+        .bb-sub-main {
+          font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-transform: none;
+          font-size: clamp(19px, 3.4vw, 25px); letter-spacing: 0.003em; line-height: 1.3;
+          color: var(--ink); max-width: 46ch; margin: 0 auto;
+        }
+        .bb-sub-lead {
+          font-family: 'Roboto Mono', monospace; font-weight: 500; font-size: 12px; letter-spacing: 0.07em; text-transform: uppercase;
+          color: var(--dim); margin: 8px 0 0;
+        }
+        .bb-checklist {
+          list-style: none; margin: 22px 0 0; padding: 0;
+          display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 10px;
+        }
+        .bb-checklist li {
+          display: flex; align-items: center; gap: 6px;
+          font-family: 'Roboto Mono', monospace; font-size: 12.5px; font-weight: 500; letter-spacing: 0.01em;
+          color: var(--black); background: #fff; border: 2px solid var(--black); border-radius: 3px; padding: 6px 11px 6px 9px;
+        }
+        .bb-checklist li::before { content: "✓"; color: var(--orange); font-weight: 800; font-family: 'Barlow', sans-serif; }
 
-        .bb-board { max-width: 900px; margin: 30px auto 0; padding: 0 18px; display: grid; gap: 22px; }
-        .bb-columns { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        .bb-board { max-width: 900px; margin: 40px auto 0; padding: 0 18px; display: grid; gap: 20px; }
+        .bb-columns { display: grid; grid-template-columns: 1fr; gap: 14px; }
         @media (min-width: 720px) { .bb-columns { grid-template-columns: 1fr 1fr; } }
         .bb-col-label {
           font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.1em; text-transform: uppercase;
-          color: var(--black); margin-bottom: 10px; display: block; border-bottom: 3px solid var(--black); padding-bottom: 6px;
+          color: var(--black); margin-bottom: 7px; display: block; border-bottom: 3px solid var(--black); padding-bottom: 5px;
         }
-        .swatch-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .swatch-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
         .swatch {
           border: 2px solid var(--hair); background: var(--bg); border-radius: 3px;
-          padding: 10px 8px 9px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 8px;
-          transition: border-color .15s ease, transform .1s ease, box-shadow .15s ease; color: var(--ink);
+          padding: 6px 8px; cursor: pointer; display: flex; flex-direction: row; align-items: center; gap: 8px;
+          transition: border-color .15s ease, background-color .15s ease, transform .12s ease, box-shadow .15s ease; color: var(--ink);
         }
         .swatch:hover { border-color: var(--black); }
         .swatch:active { transform: scale(0.97); }
-        .swatch-selected { border-color: var(--orange); box-shadow: 3px 3px 0 var(--orange); }
-        .swatch-texture { width: 100%; height: 40px; border-radius: 2px; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.25); }
-        .swatch-label { font-size: 12.5px; font-weight: 600; text-align: center; line-height: 1.2; }
+        .swatch-selected {
+          background: var(--orange); border-color: var(--orange-deep);
+          box-shadow: 3px 3px 0 var(--orange-deep); transform: scale(1.05);
+        }
+        .swatch-selected:hover { border-color: var(--orange-deep); }
+        .swatch-selected .swatch-label { color: #fff; }
+        .swatch-texture { width: 20px; height: 20px; flex: none; border-radius: 2px; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.25); }
+        .swatch-label { font-size: 12px; font-weight: 600; text-align: left; line-height: 1.15; }
+        .swatch-check { margin-left: auto; flex: none; color: #fff; font-weight: 800; font-size: 15px; }
 
         .bb-seam { position: relative; height: 46px; display: flex; align-items: center; justify-content: center; }
         .bb-seam-line { position: absolute; left: 0; right: 0; top: 50%; height: 2px; background: var(--hair); }
@@ -331,36 +357,59 @@ export default function Gluebird() {
         .bb-card {
           border: 3px solid var(--black); border-radius: 4px;
           background: var(--bg);
-          padding: 24px 22px; animation: rise .35s ease both;
+          padding: 28px 22px 22px; animation: rise .35s ease both;
         }
         @keyframes rise { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: translateY(0); } }
-        .bb-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
+
+        .bb-hero { text-align: center; padding-bottom: 22px; margin-bottom: 22px; border-bottom: 1px solid var(--hair); }
+        .bb-stars-label {
+          font-family: 'Roboto Mono', monospace; font-size: 10.5px; font-weight: 500; text-transform: uppercase;
+          letter-spacing: 0.08em; color: var(--dim); margin-bottom: 6px;
+        }
+        .bb-stars { font-size: 24px; letter-spacing: 3px; line-height: 1; margin-bottom: 10px; }
+        .bb-star-filled { color: var(--orange); }
+        .bb-star-empty { color: var(--hair); }
         .bb-adhesive-name {
           font-family: 'Barlow Condensed', sans-serif; font-weight: 800; text-transform: uppercase;
-          font-size: 34px; letter-spacing: 0.01em; color: var(--black); line-height: 1;
+          font-size: 40px; letter-spacing: 0.01em; color: var(--black); line-height: 1;
         }
-        .bb-pairline { font-family: 'Roboto Mono', monospace; font-size: 11.5px; color: var(--dim); margin-top: 4px; }
-        .bb-meta { display: flex; gap: 0; flex-wrap: wrap; margin: 10px 0 16px; border-top: 1px solid var(--hair); border-bottom: 1px solid var(--hair); }
+        .bb-pairline { font-family: 'Roboto Mono', monospace; font-size: 12px; color: var(--dim); margin-top: 6px; }
+        .bb-hero-badges { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 16px; }
+        .bb-badge {
+          font-family: 'Roboto Mono', monospace; font-size: 11.5px; font-weight: 500;
+          color: var(--ink); background: #fff; border: 2px solid var(--black); border-radius: 999px; padding: 5px 13px;
+        }
+
+        .bb-meta { display: flex; gap: 0; flex-wrap: wrap; margin: 4px 0 16px; border-top: 1px solid var(--hair); border-bottom: 1px solid var(--hair); }
         .bb-meta-item { display: flex; flex-direction: column; gap: 3px; padding: 10px 22px 10px 0; font-family: 'Roboto Mono', monospace; font-size: 11.5px; color: var(--ink); }
         .bb-meta-key { color: var(--dim); text-transform: uppercase; letter-spacing: 0.06em; font-size: 10px; }
-        .meter-wrap { display: flex; align-items: center; gap: 8px; }
-        .meter-label { font-family: 'Roboto Mono', monospace; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--dim); }
-        .meter { display: flex; gap: 3px; }
-        .meter-pip { width: 14px; height: 7px; border-radius: 1px; background: var(--hair); }
-        .meter-pip-filled { background: var(--orange); }
-        .meter-value { font-family: 'Roboto Mono', monospace; font-size: 11px; font-weight: 600; color: var(--ink); }
 
-        .bb-tip { border-left: 4px solid var(--rust); padding-left: 13px; font-size: 15px; line-height: 1.55; color: var(--ink); margin-bottom: 18px; font-weight: 500; }
-        .bb-prep { font-size: 13.5px; color: var(--dim); line-height: 1.6; margin-bottom: 20px; }
+        .bb-tip { border-left: 4px solid var(--rust); padding-left: 13px; font-size: 14px; line-height: 1.55; color: var(--dim); font-weight: 500; }
+        .bb-prep { font-size: 13.5px; color: var(--dim); line-height: 1.6; }
         .bb-prep b { color: var(--ink); }
 
-        .bb-products-label {
+        .bb-section { margin-bottom: 22px; }
+        .bb-section-label {
           font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.08em; text-transform: uppercase;
           color: var(--black); margin-bottom: 10px; border-bottom: 3px solid var(--black); padding-bottom: 6px;
         }
+        .bb-tech { border-top: 1px solid var(--hair); padding-top: 14px; }
+        .bb-tech summary {
+          cursor: pointer; font-family: 'Roboto Mono', monospace; font-size: 12px; font-weight: 500;
+          text-transform: uppercase; letter-spacing: 0.05em; color: var(--dim);
+        }
+        .bb-tech summary:hover { color: var(--ink); }
+        .bb-tech[open] summary { margin-bottom: 12px; color: var(--ink); }
         .bb-market-tag { font-family: 'Roboto Mono', monospace; font-weight: 500; font-size: 11px; letter-spacing: 0; text-transform: none; color: var(--dim); }
         .bb-products { display: grid; gap: 10px; margin-bottom: 18px; }
         .bb-product { border: 2px solid var(--hair); border-radius: 3px; padding: 13px 15px; display: flex; justify-content: space-between; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .bb-product-img {
+          width: 56px; height: 56px; flex: none; border: 2px solid var(--hair); border-radius: 3px;
+          background: #fff; display: flex; align-items: center; justify-content: center; overflow: hidden;
+        }
+        .bb-product-img img { width: 100%; height: 100%; object-fit: contain; }
+        .bb-product-img-empty { border-style: dashed; }
+        .bb-product-info { flex: 1; min-width: 160px; }
         .bb-product-name { font-weight: 700; font-size: 14.5px; margin-bottom: 3px; }
         .bb-product-blurb { font-size: 12.5px; color: var(--dim); line-height: 1.45; max-width: 44ch; }
         .bb-product-cta {
@@ -402,11 +451,8 @@ export default function Gluebird() {
         .bb-board-rank { font-family: 'Barlow Condensed', sans-serif; color: var(--bg); background: var(--black); font-weight: 800; width: 22px; height: 22px; border-radius: 2px; display: flex; align-items: center; justify-content: center; font-size: 13px; }
         .bb-board-count { font-family: 'Roboto Mono', monospace; color: var(--dim); font-size: 11.5px; }
 
-        .bb-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-        .bb-nav-brand-wrap { display: flex; align-items: center; gap: 10px; }
-        .bb-logo { height: 42px; width: auto; display: block; }
-        .bb-nav-brand { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; font-size: 15px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--dim); }
-        .bb-nav-link { font-weight: 700; font-size: 13.5px; color: var(--ink); text-decoration: none; border-bottom: 2px solid var(--orange); padding-bottom: 2px; }
+        .bb-nav { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 16px; margin-bottom: 26px; }
+        .bb-nav-link { justify-self: end; font-weight: 700; font-size: 13.5px; color: var(--ink); text-decoration: none; border-bottom: 2px solid var(--orange); padding-bottom: 2px; }
         .bb-nav-link:hover { color: var(--orange-deep); }
         .bb-footnote { max-width: 900px; margin: 32px auto 0; padding: 0 18px; font-size: 11.5px; color: var(--dim); line-height: 1.6; }
         .bb-footer { border-top: 3px solid var(--black); margin-top: 40px; }
@@ -419,25 +465,34 @@ export default function Gluebird() {
 
       <header className="bb-header">
         <div className="bb-nav">
-          <div className="bb-nav-brand-wrap">
-            <img className="bb-logo" src="/mascot-logo.png" alt="Gluebird mascot" />
-            <span className="bb-nav-brand">Gluebird</span>
-          </div>
+          <img className="bb-logo-big" src="/mascot-logo.png" alt="Gluebird mascot" />
+          <h1 className="bb-title">GLUEBIRD</h1>
           <a className="bb-nav-link" href="/blog/">Guides</a>
         </div>
-        <p className="bb-eyebrow">Workbench reference</p>
-        <h1 className="bb-title">GLUEBIRD</h1>
-        <p className="bb-sub">
-          Pick what you're joining on each side of the bench. You'll get a straight
-          answer on the adhesive, why it's the right call, real products to buy,
-          and what to do before the glue ever touches the surface.
-        </p>
+        <p className="bb-eyebrow">#1 Workbench reference</p>
+        <div className="bb-trust-bar">
+          <span>Tested by experts</span>
+          <span>78 material combinations</span>
+          <span>Updated regularly</span>
+          <span>Research based</span>
+          <span>Product testing methodology</span>
+          <span>Free, no signup</span>
+        </div>
+        <p className="bb-sub-main">Find the right adhesive in seconds. For any two materials.</p>
+        <p className="bb-sub-lead">We'll instantly recommend:</p>
+        <ul className="bb-checklist">
+          <li>Best adhesive</li>
+          <li>Surface preparation</li>
+          <li>Cure time</li>
+          <li>Strength rating</li>
+          <li>Products you can buy</li>
+        </ul>
       </header>
 
       <div className="bb-board">
         <div className="bb-columns">
           <div>
-            <span className="bb-col-label">Surface A</span>
+            <span className="bb-col-label">Material A</span>
             <div className="swatch-grid">
               {MATERIALS.map((m) => (
                 <Swatch key={m.id} material={m} selected={a === m.id} onClick={() => pick(m.id, "a")} />
@@ -445,7 +500,7 @@ export default function Gluebird() {
             </div>
           </div>
           <div>
-            <span className="bb-col-label">Surface B</span>
+            <span className="bb-col-label">Material B</span>
             <div className="swatch-grid">
               {MATERIALS.map((m) => (
                 <Swatch key={m.id} material={m} selected={b === m.id} onClick={() => pick(m.id, "b")} />
@@ -460,49 +515,73 @@ export default function Gluebird() {
         </div>
 
         {result ? (
-          <div className="bb-card">
-            <div className="bb-card-head">
-              <div>
-                <div className="bb-adhesive-name">{result.adhesive.name}</div>
-                <div className="bb-pairline">{matA.label} &nbsp;+&nbsp; {matB.label}</div>
+          <div className="bb-card" ref={resultRef}>
+            <div className="bb-hero">
+              <div className="bb-stars-label">Bond strength</div>
+              <div className="bb-stars" aria-label={`Bond strength ${result.adhesive.strength} of 5`}>
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <span key={i} className={i <= result.adhesive.strength ? "bb-star-filled" : "bb-star-empty"}>★</span>
+                ))}
               </div>
-              <StrengthMeter value={result.adhesive.strength} />
-            </div>
-            <div className="bb-meta">
-              <div className="bb-meta-item"><span className="bb-meta-key">Cure time</span><span>{result.adhesive.cure}</span></div>
-              <div className="bb-meta-item"><span className="bb-meta-key">Water resistant</span><span>{result.adhesive.water ? "Yes" : "No — indoor use only"}</span></div>
+              <div className="bb-adhesive-name">{result.adhesive.name}</div>
+              <div className="bb-pairline">Best for {matA.label} + {matB.label}</div>
+              <div className="bb-hero-badges">
+                <span className="bb-badge">{result.adhesive.cure} cure</span>
+                {result.adhesive.water ? (
+                  <>
+                    <span className="bb-badge">Waterproof</span>
+                    <span className="bb-badge">Works outdoors</span>
+                  </>
+                ) : (
+                  <span className="bb-badge">Indoor use only</span>
+                )}
+              </div>
             </div>
 
-            <p className="bb-tip">{result.tip}</p>
-
-            <p className="bb-prep">
-              <b>Before you glue:</b> clean both surfaces of oil, dust, and old
-              finish; if either side is glossy or nonporous, scuff it lightly with
-              fine sandpaper so the adhesive has something to grip; dry-fit the
-              pieces once before the glue goes on so you're not adjusting after
-              it's tacky.
-            </p>
-
-            <div className="bb-products-label">
-              Products that fit this bond <span className="bb-market-tag">({market.replace("amazon", "Amazon")})</span>
+            <div className="bb-section">
+              <div className="bb-section-label">Preparation</div>
+              <p className="bb-prep">
+                <b>Before you glue:</b> clean both surfaces of oil, dust, and old
+                finish; if either side is glossy or nonporous, scuff it lightly with
+                fine sandpaper so the adhesive has something to grip; dry-fit the
+                pieces once before the glue goes on so you're not adjusting after
+                it's tacky.
+              </p>
             </div>
-            <div className="bb-products">
-              {result.adhesive.products.map((p) => (
-                <div className="bb-product" key={p.name}>
-                  <div>
-                    <div className="bb-product-name">{p.name}</div>
-                    <div className="bb-product-blurb">{p.blurb}</div>
+
+            <div className="bb-section">
+              <div className="bb-section-label">
+                Products that fit this bond <span className="bb-market-tag">({market.replace("amazon", "Amazon")})</span>
+              </div>
+              <div className="bb-products">
+                {result.adhesive.products.map((p) => (
+                  <div className="bb-product" key={p.name}>
+                    <div className={`bb-product-img ${PRODUCT_IMAGES[p.name] ? "" : "bb-product-img-empty"}`}>
+                      {PRODUCT_IMAGES[p.name] && <img src={PRODUCT_IMAGES[p.name]} alt={p.name} loading="lazy" />}
+                    </div>
+                    <div className="bb-product-info">
+                      <div className="bb-product-name">{p.name}</div>
+                      <div className="bb-product-blurb">{p.blurb}</div>
+                    </div>
+                    <a className="bb-product-cta" href={productLink(p.name, market)} target="_blank" rel="noopener noreferrer">
+                      View product →
+                    </a>
                   </div>
-                  <a className="bb-product-cta" href={productLink(p.name, market)} target="_blank" rel="noopener noreferrer">
-                    View product →
-                  </a>
-                </div>
-              ))}
-            </div>
-            <div className="bb-affiliate-note">
-              Product links are affiliate links — if you buy through one, this site may earn a small commission at no extra cost to you.
+                ))}
+              </div>
+              <div className="bb-affiliate-note">
+                Product links are affiliate links — if you buy through one, this site may earn a small commission at no extra cost to you.
+              </div>
             </div>
 
+            <details className="bb-tech">
+              <summary>Technical details</summary>
+              <div className="bb-meta">
+                <div className="bb-meta-item"><span className="bb-meta-key">Cure time</span><span>{result.adhesive.cure}</span></div>
+                <div className="bb-meta-item"><span className="bb-meta-key">Water resistant</span><span>{result.adhesive.water ? "Yes" : "No — indoor use only"}</span></div>
+              </div>
+              <p className="bb-tip">{result.tip}</p>
+            </details>
           </div>
         ) : (
           <div className="bb-empty">Select a material on each side to see the recommended bond.</div>
@@ -517,7 +596,7 @@ export default function Gluebird() {
             Product links are affiliate links.
           </p>
           <nav className="bb-footer-nav">
-            <a href="/blog/">Blog</a>
+            <a href="/blog/">Guides</a>
             <a href="/impressum/">Impressum</a>
             <a href="/datenschutz/">Datenschutz</a>
           </nav>

@@ -9,7 +9,7 @@ const ROOT = path.join(__dirname, "..");
 const CONTENT_DIR = path.join(ROOT, "content");
 const OUT_DIR = path.join(ROOT, "dist", "blog");
 
-function template({ title, meta, keywords, bodyHtml, canonicalPath }) {
+function template({ title, meta, keywords, bodyHtml, canonicalPath, stickyCta = true }) {
   const kw = Array.isArray(keywords) ? keywords.join(", ") : "";
   return `<!doctype html>
 <html lang="en">
@@ -39,6 +39,13 @@ function template({ title, meta, keywords, bodyHtml, canonicalPath }) {
   li { margin-bottom: 6px; }
   .cta { display:inline-block; margin-top: 28px; background: var(--ink); color:#fff; padding: 12px 22px; border-radius:3px; text-decoration:none; font-weight:700; text-transform:uppercase; letter-spacing:0.03em; font-size:13px; }
   .cta:hover { background: var(--orange); }
+  .sticky-cta {
+    position: fixed; bottom: 20px; right: 20px; z-index: 100;
+    background: var(--orange); color:#fff; border: 2px solid var(--ink); border-radius: 999px;
+    padding: 12px 20px; text-decoration:none; font-weight:700; text-transform:uppercase; letter-spacing:0.03em; font-size:13px;
+    box-shadow: 0 4px 14px rgba(20,19,17,0.28);
+  }
+  .sticky-cta:hover { background: var(--orange-deep); }
   footer { border-top: 1px solid var(--hair); padding: 24px 20px; text-align:center; color: var(--dim); font-size: 13px; }
 </style>
 </head>
@@ -52,8 +59,9 @@ ${bodyHtml}
 <a class="cta" href="/">Try the Gluebird Bond Finder →</a>
 </main>
 <footer>Gluebird — general adhesive guidance. Always check the product label for specifics.
-<div style="margin-top:10px;"><a href="/blog/">Blog</a> · <a href="/impressum/">Impressum</a> · <a href="/datenschutz/">Datenschutz</a></div>
+<div style="margin-top:10px;"><a href="/blog/">Guides</a> · <a href="/impressum/">Impressum</a> · <a href="/datenschutz/">Datenschutz</a></div>
 </footer>
+${stickyCta ? '<a class="sticky-cta" href="/">Try the Bond Finder →</a>' : ""}
 </body>
 </html>`;
 }
@@ -70,7 +78,7 @@ function fixLinks(html) {
     .replace(/href="#"/g, 'href="/"');
 }
 
-function buildOne(mdPath, outPath, canonicalPath) {
+function buildOne(mdPath, outPath, canonicalPath, stickyCta = true) {
   const raw = fs.readFileSync(mdPath, "utf8");
   const { data, content } = matter(raw);
   let bodyHtml = marked.parse(content);
@@ -81,6 +89,7 @@ function buildOne(mdPath, outPath, canonicalPath) {
     keywords: data.keywords || [],
     bodyHtml,
     canonicalPath,
+    stickyCta,
   });
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
   fs.writeFileSync(outPath, html);
@@ -114,7 +123,7 @@ for (const file of fs.readdirSync(path.join(CONTENT_DIR, "pairs"))) {
 for (const slug of ["impressum", "datenschutz"]) {
   const file = path.join(CONTENT_DIR, `${slug}.md`);
   if (fs.existsSync(file)) {
-    buildOne(file, path.join(OUT_DIR, "..", slug, "index.html"), `/${slug}/`);
+    buildOne(file, path.join(OUT_DIR, "..", slug, "index.html"), `/${slug}/`, false);
   }
 }
 
